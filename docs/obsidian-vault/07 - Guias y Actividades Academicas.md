@@ -49,6 +49,17 @@ Este documento centraliza la correspondencia entre los requerimientos pedagógic
 
 ---
 
+## 📌 4. Guía Unidad 1 (Codificación y Pruebas del Software - FESC)
+
+> **Requisito**: Evidenciar análisis forense de errores bajo norma ISO/IEC 25010, codificación defensiva mediante TDD (*Red-Green-Refactor*) con herramientas tipo xUnit, cumplimiento de linter y mantenimiento correctivo/evolutivo con pruebas de regresión y *Conventional Commits*.
+
+- **Implementación en el Código**:
+  - **Análisis Forense y Seguridad (Actividad 1)**: Mitigación de IDOR, *Path Traversal*, cabeceras de seguridad y ocultamiento de datos sensibles de tarjetas verificados en `tests/Feature/SecurityHardeningTest.php` y documentados en `INFORME_FORENSE.md`.
+  - **Codificación Defensiva y TDD (Actividad 2)**: Validación de precios mayores a cero, formato de correo electrónico y bloqueo de inyecciones en referencias dentro de `app/Services/AppointmentPaymentService.php`, cubierto con pruebas unitarias puras en `tests/Unit/AppointmentPaymentServiceTest.php` y cumplimiento 100% del linter **Laravel Pint** (PSR-12).
+  - **Mantenimiento Correctivo, Evolutivo y Regresión (Actividad 3)**: Extensión de reportería exportable en JSON (`GET /api/appointments/export`) en `app/Http/Controllers/Api/AppointmentController.php` excluyendo citas canceladas del total financiero, validada con pruebas de regresión en `tests/Feature/AppointmentManagementTest.php` y trazabilidad en Git (`fix/validacion-defensiva-pagos` y `feature/exportacion-json`).
+
+---
+
 ## 🔗 Enlaces Relacionados
 - MOC Principal: [[00 - MOC - Indice Maestro]]
 - Arquitectura y Capas: [[01 - Arquitectura y Capas del Sistema]]
