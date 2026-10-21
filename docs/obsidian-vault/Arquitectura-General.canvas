@@ -1,0 +1,266 @@
+{
+  "nodes": [
+    {
+      "id": "grp-presentation",
+      "type": "group",
+      "label": "1. Capa de Presentación & Clientes",
+      "x": -900,
+      "y": -400,
+      "width": 420,
+      "height": 520,
+      "color": "2"
+    },
+    {
+      "id": "node-browser",
+      "type": "text",
+      "text": "### 🌐 Clientes HTTP / Navegadores\n- Clientes finales buscando salones de estética.\n- Dueños de negocio administrando citas y servicios.\n- Administradores supervisando la plataforma.",
+      "x": -880,
+      "y": -350,
+      "width": 380,
+      "height": 130
+    },
+    {
+      "id": "node-blade",
+      "type": "text",
+      "text": "### 🎨 Vistas Blade & Tailwind CSS\n- Interfaz **Warm-Minimal** (Terracota / Crema).\n- Tipografía editorial Cormorant + Inter.\n- **Branding Dinámico**: Inyección de `--primary-color` por negocio.",
+      "x": -880,
+      "y": -190,
+      "width": 380,
+      "height": 140
+    },
+    {
+      "id": "node-file-arch",
+      "type": "file",
+      "file": "01 - Arquitectura y Capas del Sistema.md",
+      "x": -880,
+      "y": -20,
+      "width": 380,
+      "height": 120
+    },
+
+    {
+      "id": "grp-routing",
+      "type": "group",
+      "label": "2. Capa de Ruteo & Middlewares",
+      "x": -420,
+      "y": -400,
+      "width": 420,
+      "height": 520,
+      "color": "5"
+    },
+    {
+      "id": "node-file-routes",
+      "type": "file",
+      "file": "02 - Mapa de Rutas y Endpoints.md",
+      "x": -400,
+      "y": -350,
+      "width": 380,
+      "height": 140
+    },
+    {
+      "id": "node-middlewares",
+      "type": "text",
+      "text": "### 🛡️ Pipeline de Middlewares\n- `guest`: Acceso a login / registro.\n- `auth`: Exige sesión activa.\n- `profile.completed`: Fuerza onboarding si falta celular.\n- `business.approved`: Controla acceso a gestión de negocio.",
+      "x": -400,
+      "y": -180,
+      "width": 380,
+      "height": 160
+    },
+    {
+      "id": "node-api-rest",
+      "type": "text",
+      "text": "### 📡 API REST (`routes/api.php`)\n- Endpoints JSON de disponibilidad, salones y feriados para clientes externos (Guía 2 & 7).",
+      "x": -400,
+      "y": 10,
+      "width": 380,
+      "height": 90
+    },
+
+    {
+      "id": "grp-controllers",
+      "type": "group",
+      "label": "3. Capa de Controladores & Orquestación",
+      "x": 60,
+      "y": -400,
+      "width": 440,
+      "height": 520,
+      "color": "3"
+    },
+    {
+      "id": "node-public-ctrl",
+      "type": "text",
+      "text": "### 🏪 Controladores Públicos y Auth\n- `PublicBusinessController`: Home y catálogo con buscador.\n- `GoogleAuthController`: Redirección y callback de Google OAuth.\n- `ProfileOnboardingController`: Completar perfil.",
+      "x": 80,
+      "y": -350,
+      "width": 400,
+      "height": 130
+    },
+    {
+      "id": "node-appoint-ctrl",
+      "type": "text",
+      "text": "### 📅 AppointmentController\n- Orquesta la creación de citas (`store`).\n- Controla pagos (`showPayment`, `processPayment`).\n- Actualiza estados (`pending`, `confirmed`, `completed`).",
+      "x": 80,
+      "y": -200,
+      "width": 400,
+      "height": 130
+    },
+    {
+      "id": "node-biz-ctrl",
+      "type": "text",
+      "text": "### 🏢 Gestión de Negocio\n- `BusinessController`: Datos del salón y color.\n- `ServiceController`: Servicios y fotos de galería.\n- `BusinessHourController`: Horarios de apertura semanal.",
+      "x": 80,
+      "y": -50,
+      "width": 400,
+      "height": 140
+    },
+
+    {
+      "id": "grp-services",
+      "type": "group",
+      "label": "4. Capa de Servicios de Dominio",
+      "x": 560,
+      "y": -400,
+      "width": 420,
+      "height": 520,
+      "color": "6"
+    },
+    {
+      "id": "node-file-services",
+      "type": "file",
+      "file": "05 - Servicios e Integraciones.md",
+      "x": 580,
+      "y": -350,
+      "width": 380,
+      "height": 120
+    },
+    {
+      "id": "node-avail-service",
+      "type": "text",
+      "text": "### ⏱️ AppointmentAvailabilityService\n- Cruza horarios del salón (`BusinessHour`).\n- Duración del servicio solicitado en minutos.\n- Días festivos (`Holiday`).\n- Genera intervalos libres de 15, 30 y 60 min.",
+      "x": 580,
+      "y": -210,
+      "width": 380,
+      "height": 150
+    },
+    {
+      "id": "node-other-services",
+      "type": "text",
+      "text": "### 💳 Pagos & Feriados\n- `AppointmentPaymentService`: Transición de estados financieros (`pending` -> `paid`).\n- `HolidaySyncService`: Consumo de APIs públicas de festivos.",
+      "x": 580,
+      "y": -40,
+      "width": 380,
+      "height": 140
+    },
+
+    {
+      "id": "grp-models",
+      "type": "group",
+      "label": "5. Capa de Modelos Eloquent & Base de Datos",
+      "x": 1040,
+      "y": -400,
+      "width": 450,
+      "height": 520,
+      "color": "4"
+    },
+    {
+      "id": "node-file-db",
+      "type": "file",
+      "file": "03 - Modelo de Datos y Esquema ER.md",
+      "x": 1060,
+      "y": -350,
+      "width": 410,
+      "height": 120
+    },
+    {
+      "id": "node-models-list",
+      "type": "text",
+      "text": "### 🗄️ Modelos Eloquent\n- `User`: Clientes, Dueños y Administradores.\n- `Business`: Salones con slug y `--primary-color`.\n- `Service`: Tratamientos con duración y galería JSON.\n- `Appointment`: Citas con máquina de estados.\n- `BusinessHour`, `Holiday`, `BusinessReview`.",
+      "x": 1060,
+      "y": -210,
+      "width": 410,
+      "height": 160
+    },
+    {
+      "id": "node-db-storage",
+      "type": "text",
+      "text": "### 💾 Motor de Persistencia\n- Base de datos relacional (MySQL / SQLite).\n- Migraciones ordenadas cronológicamente.\n- Llaves foráneas con integridad referencial.",
+      "x": 1060,
+      "y": -30,
+      "width": 410,
+      "height": 130
+    },
+
+    {
+      "id": "grp-distributed",
+      "type": "group",
+      "label": "6. Módulo Distribuido SOAP / RPC (Cliente-Servidor)",
+      "x": 60,
+      "y": 180,
+      "width": 920,
+      "height": 280,
+      "color": "1"
+    },
+    {
+      "id": "node-file-soap",
+      "type": "file",
+      "file": "06 - Modulo Distribuido y SOAP.md",
+      "x": 80,
+      "y": 230,
+      "width": 400,
+      "height": 200
+    },
+    {
+      "id": "node-soap-detail",
+      "type": "text",
+      "text": "### 📡 Arquitectura Distribuida en `distributed/`\n- **Service Registry (`registry.php`)**: Localización y descubrimiento de servicios.\n- **SOAP Server (`soap-service.php`)**: Endpoint de procesamiento RPC.\n- **Contratos & Validación**: Esquemas XML (`schemas/`) y transformaciones (`xslt/`).\n- **Consumidor (`client.php`)**: Cliente de prueba que invoca funciones remotas.",
+      "x": 510,
+      "y": 230,
+      "width": 450,
+      "height": 200
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-browser-routes",
+      "fromNode": "node-blade",
+      "fromSide": "right",
+      "toNode": "node-file-routes",
+      "toSide": "left"
+    },
+    {
+      "id": "edge-routes-ctrl",
+      "fromNode": "node-file-routes",
+      "fromSide": "right",
+      "toNode": "node-public-ctrl",
+      "toSide": "left"
+    },
+    {
+      "id": "edge-ctrl-appoint",
+      "fromNode": "node-appoint-ctrl",
+      "fromSide": "right",
+      "toNode": "node-avail-service",
+      "toSide": "left"
+    },
+    {
+      "id": "edge-services-models",
+      "fromNode": "node-avail-service",
+      "fromSide": "right",
+      "toNode": "node-models-list",
+      "toSide": "left"
+    },
+    {
+      "id": "edge-ctrl-models",
+      "fromNode": "node-biz-ctrl",
+      "fromSide": "right",
+      "toNode": "node-models-list",
+      "toSide": "bottom"
+    },
+    {
+      "id": "edge-routes-soap",
+      "fromNode": "node-api-rest",
+      "fromSide": "bottom",
+      "toNode": "node-file-soap",
+      "toSide": "top"
+    }
+  ]
+}

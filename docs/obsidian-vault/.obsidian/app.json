@@ -1,0 +1,11 @@
+{
+  "useMarkdownLinks": false,
+  "livePreview": true,
+  "showLineNumber": true,
+  "defaultViewMode": "source",
+  "readableLineLength": false,
+  "attachmentFolderPath": "archivos",
+  "alwaysUpdateLinks": true,
+  "trashOption": "system",
+  "tabSize": 2
+}

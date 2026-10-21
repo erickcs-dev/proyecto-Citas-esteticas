@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * AUTORES: Erick Cuevas- Camilo Ramirez
+ * MATERIA: Cliente-Servidor
+ */
+
+use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AvailabilityController;
+use App\Http\Controllers\Api\BusinessController;
+use App\Http\Controllers\Api\BusinessHourController;
+use App\Http\Controllers\Api\HolidayController;
+use App\Http\Controllers\Api\ServiceController;
+use Illuminate\Support\Facades\Route;
+
+// ======================================================================
+// GUIA 2 - ACTIVIDAD 1: INTEROPERABILIDAD
+// Las rutas API permiten intercambio de informacion JSON entre clientes externos y el servidor.
+// ======================================================================
+// ======================================================================
+// GUIA 7 - ACTIVIDAD 1: INTEROPERABILIDAD WEB
+// Estos endpoints exponen y sincronizan datos web para clientes HTTP y consumo de informacion externa.
+// ======================================================================
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/businesses', [BusinessController::class, 'index']);
+    Route::get('/businesses/{business}', [BusinessController::class, 'show']);
+    Route::get('/businesses/{business}/services', [ServiceController::class, 'index']);
+    Route::get('/businesses/{business}/hours', [BusinessHourController::class, 'index']);
+    Route::get('/businesses/{business}/availability', [AvailabilityController::class, 'show']);
+    Route::get('/holidays', [HolidayController::class, 'index']);
+});
+
+Route::middleware(['web', 'auth', 'throttle:30,1'])->group(function () {
+    Route::get('/appointments', [AppointmentController::class, 'index']);
+    Route::post('/appointments', [AppointmentController::class, 'store']);
+    Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']);
+    Route::post('/holidays/sync', [HolidayController::class, 'sync']);
+});
