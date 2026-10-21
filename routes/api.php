@@ -32,6 +32,7 @@ Route::middleware('throttle:60,1')->group(function () {
 
 Route::middleware(['web', 'auth', 'throttle:30,1'])->group(function () {
     Route::get('/appointments', [AppointmentController::class, 'index']);
+    Route::get('/appointments/export', [AppointmentController::class, 'exportReport']);
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']);
     Route::post('/holidays/sync', [HolidayController::class, 'sync']);

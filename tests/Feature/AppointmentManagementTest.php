@@ -498,4 +498,62 @@ class AppointmentManagementTest extends TestCase
             'notes' => 'Reagendada',
         ]);
     }
+
+    public function test_authenticated_user_can_export_appointments_json_report_excluding_cancelled_from_totals(): void
+    {
+        $client = User::factory()->client()->create();
+        $owner = User::factory()->business()->create();
+        $business = Business::create([
+            'name' => 'Spa Reportes',
+            'type' => 'spa',
+            'user_id' => $owner->id,
+        ]);
+
+        $service = Service::create([
+            'business_id' => $business->id,
+            'name' => 'Masaje Relajante',
+            'duration_minutes' => 60,
+            'price' => 100000,
+            'active' => true,
+        ]);
+
+        Appointment::create([
+            'user_id' => $client->id,
+            'business_id' => $business->id,
+            'service_id' => $service->id,
+            'appointment_date' => '2026-04-14',
+            'start_time' => '09:00',
+            'end_time' => '10:00',
+            'service_price' => 100000,
+            'advance_percentage' => 50,
+            'advance_amount' => 50000,
+            'payment_status' => Appointment::PAYMENT_STATUS_PAID,
+            'status' => Appointment::STATUS_CONFIRMED,
+        ]);
+
+        Appointment::create([
+            'user_id' => $client->id,
+            'business_id' => $business->id,
+            'service_id' => $service->id,
+            'appointment_date' => '2026-04-15',
+            'start_time' => '11:00',
+            'end_time' => '12:00',
+            'service_price' => 100000,
+            'advance_percentage' => 50,
+            'advance_amount' => 50000,
+            'payment_status' => Appointment::PAYMENT_STATUS_PENDING_ADVANCE,
+            'status' => Appointment::STATUS_CANCELLED,
+        ]);
+
+        $response = $this->actingAs($owner)->getJson('/api/appointments/export');
+
+        $response->assertOk()
+            ->assertJsonPath('report_type', 'appointments_summary')
+            ->assertJsonPath('summary.total_records', 2)
+            ->assertJsonPath('summary.active_appointments', 1)
+            ->assertJsonPath('summary.cancelled_appointments', 1)
+            ->assertJsonPath('summary.total_service_amount', 100000)
+            ->assertJsonPath('summary.total_advance_amount', 50000)
+            ->assertJsonCount(2, 'data');
+    }
 }
