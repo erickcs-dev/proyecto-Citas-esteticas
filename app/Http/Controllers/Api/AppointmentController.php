@@ -55,6 +55,54 @@ class AppointmentController extends Controller
         ]);
     }
 
+    public function exportReport(Request $request): JsonResponse
+    {
+        // ======================================================================
+        // MANTENIMIENTO EVOLUTIVO: MODULO DE REPORTERIA EXPORTABLE EN JSON
+        // Extiende el sistema para exportar un reporte estructurado en JSON con
+        // metricas financieras excluyendo citas canceladas del calculo total.
+        // ======================================================================
+        $user = $request->user();
+
+        if ($user->isAdmin()) {
+            $appointments = Appointment::query()
+                ->with(['user', 'business', 'service'])
+                ->latest('appointment_date')
+                ->latest('start_time')
+                ->get();
+        } elseif ($user->isBusiness()) {
+            $appointments = Appointment::query()
+                ->with(['user', 'business', 'service'])
+                ->whereIn('business_id', $user->businesses()->pluck('id'))
+                ->latest('appointment_date')
+                ->latest('start_time')
+                ->get();
+        } else {
+            $appointments = $user->appointments()
+                ->with(['business', 'service'])
+                ->latest('appointment_date')
+                ->latest('start_time')
+                ->get();
+        }
+
+        $activeAppointments = $appointments->reject(
+            fn (Appointment $appointment) => $appointment->status === Appointment::STATUS_CANCELLED
+        );
+
+        return response()->json([
+            'report_type' => 'appointments_summary',
+            'generated_at' => now()->toIso8601String(),
+            'summary' => [
+                'total_records' => $appointments->count(),
+                'active_appointments' => $activeAppointments->count(),
+                'cancelled_appointments' => $appointments->count() - $activeAppointments->count(),
+                'total_service_amount' => round((float) $activeAppointments->sum('service_price'), 2),
+                'total_advance_amount' => round((float) $activeAppointments->sum('advance_amount'), 2),
+            ],
+            'data' => $appointments->map(fn (Appointment $appointment) => $this->transform($appointment))->values(),
+        ]);
+    }
+
     public function store(StoreAppointmentRequest $request): JsonResponse
     {
         $validated = $request->validated();
