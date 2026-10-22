@@ -37,6 +37,9 @@ jobs:
         mkdir -p database
         touch database/database.sqlite
 
+    - name: Run Static Code Analysis & Style Linter (Laravel Pint PSR-12)
+      run: ./vendor/bin/pint --test
+
     - name: Execute tests (Unit and Feature tests) via Artisan
       env:
         DB_CONNECTION: sqlite
