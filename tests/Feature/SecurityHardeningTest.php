@@ -85,10 +85,12 @@ class SecurityHardeningTest extends TestCase
         $webResponse->assertHeader('X-Frame-Options', 'SAMEORIGIN');
         $webResponse->assertHeader('X-Content-Type-Options', 'nosniff');
         $webResponse->assertHeader('X-XSS-Protection', '0');
+        $webResponse->assertHeader('Content-Security-Policy');
 
         $apiResponse = $this->getJson('/api/businesses');
         $apiResponse->assertHeader('X-Frame-Options', 'SAMEORIGIN');
         $apiResponse->assertHeader('X-Content-Type-Options', 'nosniff');
         $apiResponse->assertHeader('X-XSS-Protection', '0');
+        $apiResponse->assertHeader('Content-Security-Policy');
     }
 }

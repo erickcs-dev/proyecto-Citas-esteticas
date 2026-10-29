@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
 class BusinessController extends Controller
@@ -11,6 +12,10 @@ class BusinessController extends Controller
     public function index(): JsonResponse
     {
         $businesses = Business::query()
+            ->whereHas('user', function ($query): void {
+                $query->where('role', User::ROLE_ADMIN)
+                    ->orWhereNotNull('business_approved_at');
+            })
             ->withCount(['services', 'appointments', 'hours'])
             ->orderBy('name')
             ->get()
@@ -33,6 +38,16 @@ class BusinessController extends Controller
 
     public function show(Business $business): JsonResponse
     {
+        abort_unless(
+            $business->user()
+                ->where(function ($query): void {
+                    $query->where('role', User::ROLE_ADMIN)
+                        ->orWhereNotNull('business_approved_at');
+                })
+                ->exists(),
+            404
+        );
+
         $business->load(['services', 'hours']);
 
         return response()->json([

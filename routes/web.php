@@ -19,6 +19,8 @@ use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\PublicBusinessController;
 use App\Http\Controllers\ServiceController;
+use App\Models\Business;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 // ======================================================================
@@ -28,6 +30,50 @@ Route::get('/politica-de-privacidad', [LegalController::class, 'privacy'])->name
 Route::get('/terminos-y-condiciones', [LegalController::class, 'terms'])->name('legal.terms');
 Route::get('/politica-de-cookies', [LegalController::class, 'cookies'])->name('legal.cookies');
 Route::get('/pqr', [LegalController::class, 'pqr'])->name('legal.pqr');
+
+// ======================================================================
+// SEO: SITEMAP XML DINAMICO PARA MOTORES DE BUSQUEDA
+// ======================================================================
+Route::get('/sitemap.xml', function () {
+    $businesses = Business::query()
+        ->whereHas('user', function ($query): void {
+            $query->where('role', User::ROLE_ADMIN)
+                ->orWhereNotNull('business_approved_at');
+        })
+        ->get();
+
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+    $staticRoutes = [
+        route('home'),
+        route('legal.privacy'),
+        route('legal.terms'),
+        route('legal.cookies'),
+        route('legal.pqr'),
+    ];
+
+    foreach ($staticRoutes as $url) {
+        $xml .= '<url>';
+        $xml .= '<loc>'.htmlspecialchars($url).'</loc>';
+        $xml .= '<changefreq>weekly</changefreq>';
+        $xml .= '<priority>0.8</priority>';
+        $xml .= '</url>';
+    }
+
+    foreach ($businesses as $business) {
+        $xml .= '<url>';
+        $xml .= '<loc>'.htmlspecialchars(route('public.businesses.show', $business->slug)).'</loc>';
+        $xml .= '<lastmod>'.($business->updated_at ? $business->updated_at->toAtomString() : now()->toAtomString()).'</lastmod>';
+        $xml .= '<changefreq>daily</changefreq>';
+        $xml .= '<priority>1.0</priority>';
+        $xml .= '</url>';
+    }
+
+    $xml .= '</urlset>';
+
+    return response($xml, 200, ['Content-Type' => 'application/xml']);
+})->name('sitemap');
 
 // ======================================================================
 // GUIA 1 - ACTIVIDAD 3: ANALISIS DE CAPAS

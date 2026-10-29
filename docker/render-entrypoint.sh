@@ -6,7 +6,9 @@ if [ ! -f public/build/manifest.json ]; then
     exit 1
 fi
 
-php artisan migrate --force
+if [ "${SKIP_MIGRATIONS}" != "true" ]; then
+    php artisan migrate --force
+fi
 php artisan storage:link 2>/dev/null || true
 php artisan config:cache
 php artisan route:cache

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Contracts\Provider;
@@ -176,5 +177,47 @@ class AuthFlowTest extends TestCase
         $this->assertGuest();
 
         RateLimiter::clear($key);
+    }
+
+    public function test_google_callback_mitigates_pre_account_takeover_by_rotating_unverified_password(): void
+    {
+        // Un atacante registra previamente una cuenta sin verificar el correo
+        $unverifiedVictim = User::factory()->create([
+            'email' => 'victim@example.com',
+            'password' => 'attackerSecretPassword123',
+            'email_verified_at' => null,
+            'auth_provider' => null,
+            'provider_id' => null,
+        ]);
+
+        $provider = Mockery::mock(Provider::class);
+        $socialiteUser = Mockery::mock(SocialiteUser::class);
+
+        $socialiteUser->shouldReceive('getId')->andReturn('google-victim-999');
+        $socialiteUser->shouldReceive('getEmail')->andReturn('victim@example.com');
+        $socialiteUser->shouldReceive('getName')->andReturn('Victim Verified');
+        $socialiteUser->shouldReceive('getAvatar')->andReturn('https://example.com/victim.png');
+
+        $provider->shouldReceive('user')->once()->andReturn($socialiteUser);
+
+        Socialite::shouldReceive('driver')
+            ->once()
+            ->with('google')
+            ->andReturn($provider);
+
+        $response = $this->get('/auth/google/callback');
+
+        $response->assertRedirect();
+        $this->assertAuthenticated();
+
+        $freshVictim = $unverifiedVictim->fresh();
+        $this->assertSame('google', $freshVictim->auth_provider);
+        $this->assertSame('google-victim-999', $freshVictim->provider_id);
+        $this->assertNotNull($freshVictim->email_verified_at);
+
+        // La contraseña previa del atacante ya NO debe coincidir (fue rotada e invalidada)
+        $this->assertFalse(
+            Hash::check('attackerSecretPassword123', $freshVictim->password)
+        );
     }
 }

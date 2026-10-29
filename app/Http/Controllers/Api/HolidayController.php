@@ -32,7 +32,7 @@ class HolidayController extends Controller
     public function sync(Request $request, HolidaySyncService $holidaySyncService): JsonResponse
     {
         abort_unless(
-            $request->user()?->isAdmin() || $request->user()?->isBusiness(),
+            $request->user()?->isAdmin() || $request->user()?->isBusinessApproved(),
             403
         );
 

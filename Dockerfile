@@ -29,10 +29,15 @@ RUN npm run build \
     && test -f public/build/manifest.json \
     && composer dump-autoload --optimize \
     && mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \
+    && groupadd -g 1000 appuser \
+    && useradd -u 1000 -g appuser -m -s /bin/bash appuser \
+    && chown -R appuser:appuser /app storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-COPY docker/render-entrypoint.sh /usr/local/bin/render-entrypoint.sh
+COPY --chown=appuser:appuser docker/render-entrypoint.sh /usr/local/bin/render-entrypoint.sh
 RUN chmod +x /usr/local/bin/render-entrypoint.sh
+
+USER appuser
 
 EXPOSE 8080
 

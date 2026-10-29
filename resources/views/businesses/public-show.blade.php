@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('title', $business->name.' - Reserva Online')
+@section('title', $business->name.' · Reserva Online en Citas Estéticas')
+@section('meta_description', 'Agenda tu cita en '.$business->name.'. Encuentra tratamientos de '.$business->type.', precios, horarios y reseñas verificadas.')
 @section('theme_style', '--primary-color: '.$business->brandColor().';')
 @section('hide_header', 'true')
 @section('hide_flash', 'true')
@@ -8,6 +9,33 @@
 @section('container_class', '')
 
 @section('content')
+@php
+    $schemaData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'HealthAndBeautyBusiness',
+        'name' => $business->name,
+        'telephone' => $business->phone,
+        'email' => $business->email,
+        'address' => [
+            '@type' => 'PostalAddress',
+            'streetAddress' => $business->address,
+        ],
+        'priceRange' => '$$',
+        'url' => route('public.businesses.show', $business->slug),
+    ];
+    if ($business->reviews_count > 0) {
+        $schemaData['aggregateRating'] = [
+            '@type' => 'AggregateRating',
+            'ratingValue' => number_format((float) $business->reviews_avg_rating, 1),
+            'reviewCount' => (int) $business->reviews_count,
+        ];
+    }
+@endphp
+@push('head')
+<script type="application/ld+json">
+{!! json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
+</script>
+@endpush
 <div
     class="min-h-screen bg-[#FAFBFD] text-slate-900"
     x-data="{

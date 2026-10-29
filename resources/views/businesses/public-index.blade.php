@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'citas-app · Reserva tu cita')
+@section('title', 'Citas Estéticas · Salones, Estéticas y Barberías con Reserva Online')
+@section('meta_description', 'Encuentra los mejores salones de belleza, estéticas y barberías. Compara servicios, reseñas de clientes y agenda tu cita online al instante.')
 
 @php
     $categoryMap = $businesses

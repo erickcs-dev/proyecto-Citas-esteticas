@@ -160,10 +160,28 @@ class AppointmentController extends Controller
             $validated['payment_status'] ?? $appointment->payment_status
         );
 
-        $appointment->update([
-            ...$validated,
-            ...$paymentData,
-        ]);
+        DB::transaction(function () use ($appointment, $validated, $paymentData) {
+            $hasOverlap = Appointment::query()
+                ->where('business_id', $validated['business_id'])
+                ->whereDate('appointment_date', $validated['appointment_date'])
+                ->whereKeyNot($appointment->id)
+                ->whereIn('status', [Appointment::STATUS_PENDING, Appointment::STATUS_CONFIRMED])
+                ->where('start_time', '<', $validated['end_time'])
+                ->where('end_time', '>', $validated['start_time'])
+                ->lockForUpdate()
+                ->exists();
+
+            if ($hasOverlap) {
+                throw ValidationException::withMessages([
+                    'start_time' => 'Ya existe una cita en ese rango de tiempo.',
+                ]);
+            }
+
+            $appointment->update([
+                ...$validated,
+                ...$paymentData,
+            ]);
+        });
 
         return redirect()
             ->route('appointments.edit', $appointment)
@@ -296,6 +314,21 @@ class AppointmentController extends Controller
         $validated = $validator->validated();
 
         $this->validatePaymentMethodPayload($request, $validated['payment_method']);
+
+        // Validación defensiva del payload transaccional (email pagador, monto > 0 y referencia segura)
+        try {
+            app(AppointmentPaymentService::class)->validateTransactionPayload(
+                (string) $request->user()->email,
+                (float) $appointment->advance_amount,
+                (string) $validated['reference']
+            );
+        } catch (\InvalidArgumentException $exception) {
+            throw new HttpResponseException(
+                back()
+                    ->withErrors(['reference' => $exception->getMessage()])
+                    ->withInput($request->except($this->sensitivePaymentFields()))
+            );
+        }
 
         $appointment->update([
             'payment_status' => Appointment::PAYMENT_STATUS_PAID,

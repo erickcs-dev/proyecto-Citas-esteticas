@@ -3,7 +3,23 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'citas-app')</title>
+    <title>@yield('title', 'Citas Estéticas · Reserva Citas en Salones y Barberías')</title>
+    <meta name="description" content="@yield('meta_description', 'Encuentra y agenda citas en los mejores salones de belleza, estéticas y barberías. Compara servicios, calificaciones verificadas y disponibilidad en tiempo real.')">
+    <link rel="canonical" href="@yield('canonical_url', url()->current())">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+
+    <!-- Open Graph / Meta Redes Sociales -->
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:site_name" content="Citas Estéticas">
+    <meta property="og:title" content="@yield('title', 'Citas Estéticas · Reserva Citas en Salones y Barberías')">
+    <meta property="og:description" content="@yield('meta_description', 'Encuentra y agenda citas en los mejores salones de belleza, estéticas y barberías.')">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="@yield('og_image', asset('favicon.ico'))">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('title', 'Citas Estéticas')">
+    <meta name="twitter:description" content="@yield('meta_description', 'Encuentra y agenda citas en salones de belleza y estéticas.')">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

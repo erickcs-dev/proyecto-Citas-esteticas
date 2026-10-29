@@ -160,10 +160,29 @@ class AppointmentController extends Controller
             $validated['payment_status'] ?? $appointment->payment_status
         );
 
-        $appointment->update([
-            ...$validated,
-            ...$paymentData,
-        ]);
+        DB::transaction(function () use ($appointment, $validated, $paymentData) {
+            $hasOverlap = Appointment::query()
+                ->where('business_id', $validated['business_id'])
+                ->whereDate('appointment_date', $validated['appointment_date'])
+                ->whereKeyNot($appointment->id)
+                ->whereIn('status', [Appointment::STATUS_PENDING, Appointment::STATUS_CONFIRMED])
+                ->where('start_time', '<', $validated['end_time'])
+                ->where('end_time', '>', $validated['start_time'])
+                ->lockForUpdate()
+                ->exists();
+
+            if ($hasOverlap) {
+                throw ValidationException::withMessages([
+                    'start_time' => 'Ya existe una cita en ese rango de tiempo.',
+                ]);
+            }
+
+            $appointment->update([
+                ...$validated,
+                ...$paymentData,
+            ]);
+        });
+
         $appointment->load(['user', 'business', 'service']);
 
         return response()->json([

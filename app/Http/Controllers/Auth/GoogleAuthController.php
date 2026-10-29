@@ -64,7 +64,30 @@ class GoogleAuthController extends Controller
             ->first();
 
         if (! $user) {
-            $user = User::query()->where('email', $email)->first();
+            $existingUser = User::query()->where('email', $email)->first();
+
+            if ($existingUser) {
+                // Mitigación Pre-Account Takeover:
+                // Si la cuenta local previa no había verificado su correo electrónico, quien registró la contraseña
+                // original nunca demostró ser el dueño del correo. Al iniciar sesión vía Google (proveedor que sí
+                // verifica propiedad del buzón), invalidamos la contraseña previa para evitar que un atacante
+                // que conozca la contraseña antigua mantenga acceso a la cuenta.
+                $updates = [
+                    'name' => $googleUser->getName() ?: $existingUser->name,
+                    'email' => $email,
+                    'avatar' => $googleUser->getAvatar() ?: $existingUser->avatar,
+                    'auth_provider' => 'google',
+                    'provider_id' => (string) $googleUser->getId(),
+                    'email_verified_at' => $existingUser->email_verified_at ?: now(),
+                ];
+
+                if ($existingUser->email_verified_at === null) {
+                    $updates['password'] = Hash::make(Str::password(32));
+                }
+
+                $existingUser->forceFill($updates)->save();
+                $user = $existingUser;
+            }
         }
 
         if ($user) {

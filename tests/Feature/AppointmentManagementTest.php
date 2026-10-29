@@ -280,6 +280,48 @@ class AppointmentManagementTest extends TestCase
         $this->assertArrayNotHasKey('cvv', $oldInput);
     }
 
+    public function test_payment_rejects_malformed_reference_characters(): void
+    {
+        $client = User::factory()->client()->create();
+        $owner = User::factory()->business()->create();
+        $business = Business::create([
+            'name' => 'Pago Validado',
+            'type' => 'estetica',
+            'user_id' => $owner->id,
+        ]);
+        $service = Service::create([
+            'business_id' => $business->id,
+            'name' => 'Tratamiento',
+            'duration_minutes' => 60,
+            'price' => 100000,
+            'active' => true,
+        ]);
+        $appointment = Appointment::create([
+            'user_id' => $client->id,
+            'business_id' => $business->id,
+            'service_id' => $service->id,
+            'appointment_date' => '2026-04-13',
+            'start_time' => '11:00',
+            'end_time' => '12:00',
+            'service_price' => 100000,
+            'advance_percentage' => 50,
+            'advance_amount' => 50000,
+            'payment_status' => Appointment::PAYMENT_STATUS_PENDING_ADVANCE,
+            'status' => Appointment::STATUS_PENDING,
+        ]);
+
+        $response = $this->actingAs($client)->from("/appointments/{$appointment->id}/payment")
+            ->post("/appointments/{$appointment->id}/payment", [
+                'payment_method' => 'nequi',
+                'account_holder' => $client->name,
+                'reference' => 'REF<script>alert(1)</script>',
+                'phone_number' => '3001234567',
+            ]);
+
+        $response->assertRedirect("/appointments/{$appointment->id}/payment");
+        $response->assertSessionHasErrors(['reference']);
+    }
+
     public function test_appointment_cannot_overlap_another_appointment(): void
     {
         $client = User::factory()->client()->create();
@@ -555,5 +597,71 @@ class AppointmentManagementTest extends TestCase
             ->assertJsonPath('summary.total_service_amount', 100000)
             ->assertJsonPath('summary.total_advance_amount', 50000)
             ->assertJsonCount(2, 'data');
+    }
+
+    public function test_appointment_update_rejects_overlapping_time_against_another_appointment(): void
+    {
+        $client = User::factory()->client()->create();
+        $owner = User::factory()->business()->create();
+        $business = Business::create([
+            'name' => 'Centro Laser',
+            'type' => 'estetica',
+            'user_id' => $owner->id,
+        ]);
+
+        BusinessHour::create([
+            'business_id' => $business->id,
+            'day_of_week' => 1,
+            'opens_at' => '08:00',
+            'closes_at' => '18:00',
+            'is_active' => true,
+        ]);
+
+        $service = Service::create([
+            'business_id' => $business->id,
+            'name' => 'Depilación',
+            'duration_minutes' => 60,
+            'price' => 80000,
+            'active' => true,
+        ]);
+
+        // Cita 1 existente de 09:00 a 10:00
+        Appointment::create([
+            'user_id' => $client->id,
+            'business_id' => $business->id,
+            'service_id' => $service->id,
+            'appointment_date' => '2026-04-13',
+            'start_time' => '09:00',
+            'end_time' => '10:00',
+            'status' => Appointment::STATUS_CONFIRMED,
+            'service_price' => 80000,
+            'advance_amount' => 40000,
+            'payment_status' => Appointment::PAYMENT_STATUS_PAID,
+        ]);
+
+        // Cita 2 existente de 11:00 a 12:00
+        $appointment2 = Appointment::create([
+            'user_id' => $client->id,
+            'business_id' => $business->id,
+            'service_id' => $service->id,
+            'appointment_date' => '2026-04-13',
+            'start_time' => '11:00',
+            'end_time' => '12:00',
+            'status' => Appointment::STATUS_PENDING,
+            'service_price' => 80000,
+            'advance_amount' => 40000,
+            'payment_status' => Appointment::PAYMENT_STATUS_PENDING_ADVANCE,
+        ]);
+
+        // Intentar mover la Cita 2 a las 09:30 (se solapa con Cita 1 de 09:00 a 10:00)
+        $response = $this->actingAs($client)->put("/appointments/{$appointment2->id}", [
+            'business_id' => $business->id,
+            'service_id' => $service->id,
+            'appointment_date' => '2026-04-13',
+            'start_time' => '09:30',
+            'status' => Appointment::STATUS_PENDING,
+        ]);
+
+        $response->assertSessionHasErrors(['start_time']);
     }
 }

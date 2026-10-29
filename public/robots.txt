@@ -1,2 +1,15 @@
 User-agent: *
-Disallow:
+Allow: /
+Allow: /negocios/*
+Allow: /politica-de-privacidad
+Allow: /terminos-y-condiciones
+Allow: /politica-de-cookies
+Allow: /pqr
+
+Disallow: /dashboard
+Disallow: /appointments/*
+Disallow: /onboarding/*
+Disallow: /business-access/*
+Disallow: /api/*
+
+Sitemap: http://127.0.0.1:8000/sitemap.xml
